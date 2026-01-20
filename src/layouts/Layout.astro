@@ -1,22 +1,49 @@
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content="Asisten bot Telegram gratis untuk pantau cuaca BMKG, pengingat sholat harian, reminder todo, dan pengingat harian. Ringan, cepat, dan mudah dipakai." />
+    <meta name="robots" content="index,follow" />
+    <meta name="keywords" content="asisten bot, Telegram, cuaca BMKG, pantau cuaca, reminder todo, pengingat harian, pengingat sholat, jadwal sholat" />
+    <title>Asisten Bot Telegram — Pantau Cuaca BMKG, Pengingat Sholat, Reminder Todo</title>
+    <!-- Google Fonts (Inter + Patrick Hand) - non-blocking load -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="/sketch.css" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Asisten Bot Telegram — Pantau Cuaca BMKG, Pengingat Sholat, Reminder Todo" />
+    <meta property="og:description" content="Bot Telegram gratis untuk pantau cuaca BMKG, pengingat sholat, reminder todo, dan pengingat harian." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Asisten Bot Telegram — Cuaca BMKG, Pengingat Sholat, Reminder Todo" />
+    <meta name="twitter:description" content="Bot Telegram gratis untuk pantau cuaca, jadwal sholat, dan pengingat harian." />
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Asisten Bot Telegram",
+  "applicationCategory": "MobileApplication",
+  "operatingSystem": "iOS, Android, Web",
+  "description": "Bot Telegram gratis untuk pantau cuaca BMKG, jadwal sholat, reminder todo, dan pengingat harian.",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "IDR"}
+}
+    </script>
+  </head>
+  <body>
+    <header class="site">
+      <div class="header-inner">
+        <a class="brand" href="/">Izinnnn...</a>
+        <nav class="nav" aria-label="Main">
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site">© {new Date().getFullYear()} — Built with Astro</footer>
+  </body>
 </html>
-
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>

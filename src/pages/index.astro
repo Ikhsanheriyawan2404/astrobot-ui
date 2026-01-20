@@ -1,11 +1,60 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const telegramBotUrl = 'https://t.me/your_bot_username';
 ---
 
 <Layout>
-	<Welcome />
+  <section class="hero">
+    <div>
+      <h1 class="hero-title">Asisten Bot Telegram: Pantau Cuaca BMKG, Pengingat Sholat, Reminder Todo <span class="bang">!</span></h1>
+      <p class="lead">Bot Telegram gratis yang bantu kamu pantau cuaca BMKG, atur pengingat sholat harian, kelola reminder todo, dan pengingat harian lain — tanpa instal aplikasi tambahan.</p>
+      <div style="margin-top:16px;display:flex;gap:12px;align-items:center">
+        <a class="btn-sketch btn-primary" href={telegramBotUrl} target="_blank" rel="noopener">Coba di Telegram</a>
+        <span class="small">Jalan di iOS, Android, dan desktop</span>
+      </div>
+    </div>
+    
+  </section>
+
+  <section id="fitur" class="section">
+    <h2 style="margin:0 0 16px;font-family:Patrick Hand, system-ui;text-align:center">Fitur-fitur yang *No Cap*</h2>
+    <div class="features">
+      <div class="card">
+        <h3 style="margin:0 0 6px">🌦️ Pantau Cuaca BMKG</h3>
+        <p class="small">Notifikasi ramalan cuaca harian dari BMKG sesuai lokasi. Tahu kondisi sebelum beraktivitas.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">🕌 Pengingat Sholat Harian</h3>
+        <p class="small">Jadwal sholat otomatis per kota dengan pengingat yang bisa kamu atur sendiri.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">✅ Reminder Todo</h3>
+        <p class="small">Tambah, hapus, dan lihat daftar tugas. Bot kirim pengingat sesuai jadwal kamu.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">💬 Pengingat Harian</h3>
+        <p class="small">Quote pagi dan pengingat ringan setiap hari agar tetap termotivasi.</p>
+      </div>
+      <!-- <div class="card">
+        <h3 style="margin:0 0 6px">📖 Ayat & Hadis Harian</h3>
+        <p class="small">Ayat Al-Qur'an atau hadis dikirim otomatis tiap pagi. Opsi tema Ramadan & pembelajaran Islam.</p>
+      </div> -->
+    </div>
+  </section>
+
+  <section id="cara" class="section">
+    <div class="card">
+      <h2 style="margin:0 0 8px;font-family:Patrick Hand, system-ui">Cara Pakai</h2>
+      <p class="small">1) Klik tombol "Mulai di Telegram" dan chat /start.<br/>2) Pilih kota kamu dan fitur yang mau aktif.<br/>3) Atur jadwal notifikasi sesuai kebutuhan. Selesai!</p>
+    </div>
+  </section>
+
+  <section id="faq" class="section">
+    <div class="card">
+      <h2 style="margin:0 0 12px;font-family:Patrick Hand, system-ui">FAQ</h2>
+      <p class="small"><strong>T:</strong> Apakah perlu install aplikasi?<br/><strong>J:</strong> Tidak, cukup pakai Telegram yang sudah ada di HP kamu.</p>
+      <p class="small" style="margin-top:8px"><strong>T:</strong> Bisa matiin beberapa opsi notif?<br/><strong>J:</strong> Bisa. Atur biar tenang di pengaturan bot.</p>
+      <p class="small" style="margin-top:8px"><strong>T:</strong> Data aman?<br/><strong>J:</strong> Semua data tersimpan di chat Telegram kamu. Tidak ada server pihak ketiga.</p>
+    </div>
+  </section>
 </Layout>
