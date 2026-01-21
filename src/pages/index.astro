@@ -1,15 +1,23 @@
 ---
 import Layout from '../layouts/Layout.astro';
 const telegramBotUrl = 'https://t.me/your_bot_username';
+const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
 ---
 
 <Layout>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Sedang verifikasi...</p>
+  </div>
+
   <section class="hero">
     <div>
       <h1 class="hero-title">Asisten Bot Telegram buat hidup kamu makin rapih <span class="bang">!</span></h1>
       <p class="lead">Satu bot buat semua: pantau cuaca BMKG, pengingat sholat harian, reminder todo, sama pengingat harian biar jadwalmu nggak berantakan lagi.</p>
       <div style="margin-top:16px;display:flex;gap:12px;align-items:center">
         <a class="btn-sketch btn-primary" href={telegramBotUrl} target="_blank" rel="noopener">Coba di Telegram</a>
+        <a id="open-home-btn" class="btn-sketch" href="/home" style="display:none">Buka Home</a>
         <span class="small">Auto jalan di iOS, Android, dan desktop</span>
       </div>
     </div>
@@ -58,3 +66,60 @@ const telegramBotUrl = 'https://t.me/your_bot_username';
     </div>
   </section>
 </Layout>
+
+<script define:vars={{ apiBaseUrl }}>
+  (async function() {
+    const params = new URLSearchParams(window.location.search);
+    const refToken = params.get('ref');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const openHomeBtn = document.getElementById('open-home-btn');
+
+    async function verifyToken(token, { save = false, redirectOnSuccess = false } = {}) {
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/users/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          if (save) {
+            localStorage.setItem('api_key', token);
+            localStorage.setItem('user_data', JSON.stringify(userData));
+          }
+          if (openHomeBtn) openHomeBtn.style.display = 'inline-block';
+          if (redirectOnSuccess) window.location.href = '/home';
+          return true;
+        }
+      } catch (err) {
+        console.error('verifyToken error', err);
+      }
+      return false;
+    }
+
+    // If ref present -> validate, save and redirect to /home
+    if (refToken) {
+      loadingOverlay.classList.remove('hidden');
+      const ok = await verifyToken(refToken, { save: true, redirectOnSuccess: true });
+      if (!ok) {
+        loadingOverlay.classList.add('hidden');
+        window.history.replaceState({}, document.title, '/');
+      }
+      return;
+    }
+
+    // No ref: check stored api_key and show "Buka Home" when valid
+    const stored = localStorage.getItem('api_key');
+    if (stored) {
+      const ok = await verifyToken(stored, { save: true, redirectOnSuccess: false });
+      if (!ok) {
+        localStorage.removeItem('api_key');
+        localStorage.removeItem('user_data');
+        if (openHomeBtn) openHomeBtn.style.display = 'none';
+      }
+    }
+  })();
+</script>

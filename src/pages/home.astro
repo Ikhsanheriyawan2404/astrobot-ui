@@ -1,0 +1,393 @@
+---
+import Layout from '../layouts/Layout.astro';
+const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
+---
+
+<Layout>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Memuat data...</p>
+  </div>
+
+  <div id="home-content" class="home-container" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h1 class="user-greeting">Halo, <span id="user-name">...</span> 👋</h1>
+      <button id="logout-btn" class="logout-btn">Logout</button>
+    </div>
+
+    <div class="card" style="margin-bottom:24px">
+      <div class="todo-header">
+        <h2>✅ Todo List</h2>
+      </div>
+
+      <div class="todo-input-wrapper">
+        <input 
+          type="text" 
+          id="new-todo-input" 
+          class="todo-input" 
+          placeholder="Tambah todo baru..."
+          autocomplete="off"
+        />
+        <button id="add-todo-btn" class="btn-sketch btn-primary">Tambah</button>
+      </div>
+
+      <ul id="todo-list" class="todo-list">
+        <!-- Todos will be rendered here -->
+      </ul>
+
+      <div id="empty-state" class="empty-state" style="display:none">
+        <div class="empty-state-icon">📝</div>
+        <p class="empty-state-text">Belum ada todo. Yuk tambah yang pertama!</p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ apiBaseUrl }}>
+  // State
+  let todos = [];
+  let editingId = null;
+  let apiKey = null;
+  let userData = null;
+
+  // DOM Elements
+  const loadingOverlay = document.getElementById('loading-overlay');
+  const homeContent = document.getElementById('home-content');
+  const userNameEl = document.getElementById('user-name');
+  const todoListEl = document.getElementById('todo-list');
+  const emptyStateEl = document.getElementById('empty-state');
+  const newTodoInput = document.getElementById('new-todo-input');
+  const addTodoBtn = document.getElementById('add-todo-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  // Check authentication
+  async function checkAuth() {
+    apiKey = localStorage.getItem('api_key');
+    const storedUserData = localStorage.getItem('user_data');
+
+    if (!apiKey) {
+      window.location.href = '/';
+      return false;
+    }
+
+    try {
+      // Verify token is still valid
+      const response = await fetch(`${apiBaseUrl}/api/users/me`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem('api_key');
+        localStorage.removeItem('user_data');
+        window.location.href = '/';
+        return false;
+      }
+
+      userData = (await response.json()).data;
+      localStorage.setItem('user_data', JSON.stringify(userData));
+      return true;
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      // Use cached data if network fails
+      if (storedUserData) {
+        userData = JSON.parse(storedUserData);
+        return true;
+      }
+      window.location.href = '/';
+      return false;
+    }
+  }
+
+  // Fetch todos from API
+  async function fetchTodos() {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/todos`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+
+      if (response.ok) {
+        todos = (await response.json()).data;
+      } else {
+        todos = [];
+      }
+    } catch (error) {
+      console.error('Failed to fetch todos:', error);
+      // Fallback to localStorage if API fails
+      const cachedTodos = localStorage.getItem('todos');
+      todos = cachedTodos ? JSON.parse(cachedTodos) : [];
+    }
+    renderTodos();
+  }
+
+  // Create todo
+  async function createTodo(title) {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/todos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ title, completed: false })
+      });
+
+      if (response.ok) {
+        const newTodo = (await response.json()).data;
+        todos.unshift(newTodo);
+      } else {
+        // Fallback: create locally
+        const newTodo = {
+          id: Date.now(),
+          title,
+          completed: false,
+          created_at: new Date().toISOString()
+        };
+        todos.unshift(newTodo);
+      }
+    } catch (error) {
+      console.error('Failed to create todo:', error);
+      const newTodo = {
+        id: Date.now(),
+        title,
+        completed: false,
+        created_at: new Date().toISOString()
+      };
+      todos.unshift(newTodo);
+    }
+    saveTodosLocally();
+    renderTodos();
+  }
+
+  // Update todo
+  async function updateTodo(id, updates) {
+    const todoIndex = todos.findIndex(t => t.id === id);
+    if (todoIndex === -1) return;
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/todos/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(updates)
+      });
+
+      if (response.ok) {
+        const updatedTodo = (await response.json()).data;
+        todos[todoIndex] = updatedTodo;
+      } else {
+        todos[todoIndex] = { ...todos[todoIndex], ...updates };
+      }
+    } catch (error) {
+      console.error('Failed to update todo:', error);
+      todos[todoIndex] = { ...todos[todoIndex], ...updates };
+    }
+    saveTodosLocally();
+    renderTodos();
+  }
+
+  // Toggle todo completion (POST { check: true|false } to API)
+  async function toggleTodo(id) {
+    const todoIndex = todos.findIndex(t => t.id === id);
+    if (todoIndex === -1) return;
+    const todo = todos[todoIndex];
+
+    // If item has been marked deleted (deleted_at truthy), treat as checked and do not allow toggling
+    if (todo.deleted_at) return;
+
+    const currentCompleted = !!todo.completed;
+    const newCheck = !currentCompleted;
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/todos/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ check: newCheck })
+      });
+
+      if (response.ok) {
+        const body = await response.json();
+        const updated = body.data ?? { ...todo, completed: newCheck };
+        todos[todoIndex] = updated;
+      } else {
+        todos[todoIndex] = { ...todo, completed: newCheck };
+      }
+    } catch (err) {
+      console.error('Failed to toggle todo:', err);
+      todos[todoIndex] = { ...todo, completed: newCheck };
+    }
+
+    saveTodosLocally();
+    renderTodos();
+  }
+
+  // Save todos locally as backup
+  function saveTodosLocally() {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  }
+
+  // Render todos
+  function renderTodos() {
+    if (todos.length === 0) {
+      todoListEl.innerHTML = '';
+      emptyStateEl.style.display = 'block';
+      return;
+    }
+
+    emptyStateEl.style.display = 'none';
+    
+    todoListEl.innerHTML = todos.map(todo => {
+      const isDeleted = !!todo.deleted_at;
+      const isChecked = !!todo.completed || isDeleted;
+      const itemClass = isChecked ? 'completed' : '';
+      const checkedAttr = isChecked ? ' checked="checked"' : '';
+      const disabledAttr = isDeleted ? ' disabled="disabled"' : '';
+      const dataActionAttr = isDeleted ? '' : ' data-action="toggle"';
+
+      const titleEsc = escapeHtml(todo.title || '');
+      const contentHtml = editingId === todo.id
+        ? '<input type="text" class="todo-title-input" value="' + titleEsc + '" data-action="edit-input" />'
+        : '<span class="todo-title" data-action="edit">' + titleEsc + '</span>';
+
+      const actionsHtml = editingId === todo.id
+        ? '<button class="btn-icon" data-action="save" title="Simpan">💾</button>'
+        : '<button class="btn-icon" data-action="edit" title="Edit">✏️</button>';
+
+      return `
+      <li class="todo-item ${itemClass}" data-id="${todo.id}">
+        <input 
+          type="checkbox" 
+          class="todo-checkbox" 
+          ${checkedAttr}
+          ${disabledAttr}
+          ${dataActionAttr}
+        />
+        <div class="todo-content">
+          ${contentHtml}
+        </div>
+        <div class="todo-actions">
+          ${actionsHtml}
+        </div>
+      </li>
+    `;
+    }).join('');
+  }
+
+  // Escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Event Handlers
+  function handleTodoClick(e) {
+    const target = e.target;
+    const action = target.dataset.action;
+    const todoItem = target.closest('.todo-item');
+    
+    if (!todoItem) return;
+    
+    const id = parseInt(todoItem.dataset.id);
+
+    switch (action) {
+      case 'toggle':
+        toggleTodo(id);
+        break;
+      case 'edit':
+        editingId = id;
+        renderTodos();
+        // Focus the newly created input inside the re-rendered list
+        setTimeout(() => {
+          const newItem = todoListEl.querySelector(`[data-id="${id}"]`);
+          const input = newItem ? newItem.querySelector('.todo-title-input') : null;
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }, 0);
+        break;
+      case 'save':
+        const input = todoItem.querySelector('.todo-title-input');
+        if (input && input.value.trim()) {
+          updateTodo(id, { title: input.value.trim() });
+        }
+        editingId = null;
+        break;
+    }
+  }
+
+  // Handle Enter key in edit input
+  function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+      const input = e.target;
+      if (input.dataset.action === 'edit-input') {
+        const todoItem = input.closest('.todo-item');
+        const id = parseInt(todoItem.dataset.id);
+        if (input.value.trim()) {
+          updateTodo(id, { title: input.value.trim() });
+        }
+        editingId = null;
+      }
+    } else if (e.key === 'Escape') {
+      editingId = null;
+      renderTodos();
+    }
+  }
+
+  // Add new todo
+  function handleAddTodo() {
+    const title = newTodoInput.value.trim();
+    if (title) {
+      createTodo(title);
+      newTodoInput.value = '';
+      newTodoInput.focus();
+    }
+  }
+
+  // Logout
+  function handleLogout() {
+    localStorage.removeItem('api_key');
+    localStorage.removeItem('user_data');
+    localStorage.removeItem('todos');
+    window.location.href = '/';
+  }
+
+  // Initialize
+  async function init() {
+    const isAuthenticated = await checkAuth();
+    
+    if (!isAuthenticated) return;
+
+    // Show content
+    userNameEl.textContent = userData.name || 'User';
+    loadingOverlay.classList.add('hidden');
+    homeContent.style.display = 'block';
+
+    // Fetch todos
+    await fetchTodos();
+
+    // Event listeners
+    todoListEl.addEventListener('click', handleTodoClick);
+    todoListEl.addEventListener('keydown', handleKeyDown);
+    addTodoBtn.addEventListener('click', handleAddTodo);
+    newTodoInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleAddTodo();
+    });
+    logoutBtn.addEventListener('click', handleLogout);
+  }
+
+  // Start the app
+  init();
+</script>
