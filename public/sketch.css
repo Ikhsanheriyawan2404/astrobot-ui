@@ -3,7 +3,8 @@
   --bg:#fffdf7;
   --ink:#111827;
   --muted:#475569;
-  --accent:#ef4444;
+  --accent:#3b82f6; /* unified accent -> blue */
+  --accent-color:#3b82f6;
   --brand:#111827;
   --max:1100px;
 }

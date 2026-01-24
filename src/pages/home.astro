@@ -11,47 +11,329 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   </div>
 
   <div id="home-content" class="home-container" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <h1 class="user-greeting">Halo, <span id="user-name">...</span> 👋</h1>
-      <button id="logout-btn" class="logout-btn">Logout</button>
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h1 class="user-greeting">Halo, <span id="user-name">...</span> <span class="iconify" data-icon="mdi:hand-wave" data-inline="false" style="vertical-align:middle;margin-left:6px"></span></h1>
     </div>
 
-    <div class="card" style="margin-bottom:24px">
-      <div class="todo-header">
-        <h2>✅ Todo List</h2>
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Todo Section -->
+      <div class="card feature-card" id="todo-section">
+        <div class="card-header">
+          <h2><span class="iconify" data-icon="mdi:check-circle-outline" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Todo List</h2>
+          <span class="badge" id="todo-count">0</span>
+        </div>
+
+        <div class="todo-input-wrapper">
+          <input 
+            type="text" 
+            id="new-todo-input" 
+            class="todo-input" 
+            placeholder="Tambah todo baru..."
+            autocomplete="off"
+          />
+          <button id="add-todo-btn" class="btn-sketch btn-primary">Tambah</button>
+        </div>
+
+        <ul id="todo-list" class="todo-list">
+          <!-- Todos will be rendered here -->
+        </ul>
+
+        <div id="empty-state" class="empty-state" style="display:none">
+          <div class="empty-state-icon"><span class="iconify" data-icon="mdi:note-outline" data-inline="false"></span></div>
+          <p class="empty-state-text">Belum ada todo. Yuk tambah yang pertama!</p>
+        </div>
       </div>
 
-      <div class="todo-input-wrapper">
-        <input 
-          type="text" 
-          id="new-todo-input" 
-          class="todo-input" 
-          placeholder="Tambah todo baru..."
-          autocomplete="off"
-        />
-        <button id="add-todo-btn" class="btn-sketch btn-primary">Tambah</button>
+      <!-- Jadwal Sholat Section -->
+      <div class="card feature-card" id="sholat-section">
+        <div class="card-header">
+          <h2><span class="iconify" data-icon="mdi:mosque" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Jadwal Sholat</h2>
+        </div>
+
+        <div id="sholat-not-configured" class="setup-prompt">
+          <div class="setup-icon"><span class="iconify" data-icon="mdi:map-marker" data-inline="false"></span></div>
+          <p>Belum ada lokasi yang diatur</p>
+          <p class="setup-hint">Atur lokasi untuk melihat jadwal sholat</p>
+          <button class="btn-sketch btn-secondary open-sholat-setup">Atur Lokasi</button>
+        </div>
+
+        <div id="sholat-configured" style="display:none">
+          <div class="location-badge">
+            <span class="location-icon"><span class="iconify" data-icon="mdi:map-marker" data-inline="false"></span></span>
+            <span id="sholat-location-name">-</span>
+            <button class="btn-icon-small change-sholat-location" title="Ubah lokasi"><span class="iconify" data-icon="mdi:pencil" data-inline="false"></span></button>
+          </div>
+          <div class="prayer-times-grid" id="prayer-times">
+            <!-- Prayer times will be rendered here -->
+          </div>
+          <div class="next-prayer-info" id="next-prayer-info">
+            <!-- Next prayer info -->
+          </div>
+        </div>
       </div>
 
-      <ul id="todo-list" class="todo-list">
-        <!-- Todos will be rendered here -->
-      </ul>
+      <!-- Cuaca Section -->
+      <div class="card feature-card" id="cuaca-section">
+        <div class="card-header">
+          <h2><span class="iconify" data-icon="mdi:weather-partly-cloudy" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Perkiraan Cuaca</h2>
+        </div>
 
-      <div id="empty-state" class="empty-state" style="display:none">
-        <div class="empty-state-icon">📝</div>
-        <p class="empty-state-text">Belum ada todo. Yuk tambah yang pertama!</p>
+        <div id="cuaca-not-configured" class="setup-prompt">
+          <div class="setup-icon"><span class="iconify" data-icon="mdi:map-marker" data-inline="false"></span></div>
+          <p>Belum ada lokasi yang diatur</p>
+          <p class="setup-hint">Atur lokasi untuk melihat perkiraan cuaca</p>
+          <button class="btn-sketch btn-secondary open-cuaca-setup">Atur Lokasi</button>
+        </div>
+
+        <div id="cuaca-configured" style="display:none">
+          <div class="location-badge">
+            <span class="location-icon"><span class="iconify" data-icon="mdi:map-marker" data-inline="false"></span></span>
+            <span id="cuaca-location-name">-</span>
+            <button class="btn-icon-small change-cuaca-location" title="Ubah lokasi"><span class="iconify" data-icon="mdi:pencil" data-inline="false"></span></button>
+          </div>
+          <div class="weather-display" id="weather-display">
+            <!-- Weather info will be rendered here -->
+          </div>
+          <div class="weather-forecast" id="weather-forecast">
+            <!-- 3 day forecast -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <div class="card settings-card" style="margin-top:24px">
+      <div class="card-header" style="cursor:pointer" id="settings-toggle">
+        <h2><span class="iconify" data-icon="mdi:cog" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Pengaturan Notifikasi</h2>
+        <span class="toggle-icon" id="settings-toggle-icon">▼</span>
+      </div>
+
+      <div id="settings-content" class="settings-content">
+        <p class="settings-description">Atur notifikasi untuk membantu kamu tetap produktif dan tidak melewatkan hal penting.</p>
+
+        <!-- Jadwal Sholat Notification -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-title">
+              <span class="setting-icon"><span class="iconify" data-icon="mdi:mosque" data-inline="false"></span></span>
+              <span>Notifikasi Jadwal Sholat</span>
+            </div>
+            <p class="setting-desc">Agar selalu ingat kewajiban setiap waktunya. Notifikasi dikirim setiap waktu masuk.</p>
+          </div>
+          <div class="setting-controls">
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-sholat" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        
+        <!-- Todo Notification -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-title">
+              <span class="setting-icon"><span class="iconify" data-icon="mdi:clipboard-list" data-inline="false"></span></span>
+              <span>Notifikasi Todo</span>
+            </div>
+            <p class="setting-desc">Diingatkan setiap hari di awal hari tentang apa saja yang harus dikerjakan.</p>
+          </div>
+          <div class="setting-controls">
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-todo" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="setting-time-picker" id="todo-time-picker">
+          <label>Jam pengingat:</label>
+          <input type="time" id="todo-notif-time" value="07:00">
+        </div>
+
+        <!-- Cuaca Notification -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-title">
+              <span class="setting-icon"><span class="iconify" data-icon="mdi:weather-partly-cloudy" data-inline="false"></span></span>
+              <span>Notifikasi Cuaca</span>
+            </div>
+            <p class="setting-desc">Untuk jaga-jaga jika ada kegiatan di luar rumah. Diingatkan setiap hari.</p>
+          </div>
+          <div class="setting-controls">
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-cuaca" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="setting-time-picker" id="cuaca-time-picker">
+          <label>Jam pengingat:</label>
+          <input type="time" id="cuaca-notif-time" value="06:00">
+        </div>
+
+        <!-- Motivasi Notification -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-title">
+              <span class="setting-icon"><span class="iconify" data-icon="mdi:lightbulb" data-inline="false"></span></span>
+              <span>Notifikasi Motivasi</span>
+            </div>
+            <p class="setting-desc">Untuk selalu semangat dan termotivasi menjalani hari.</p>
+          </div>
+          <div class="setting-controls">
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-motivasi" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="setting-time-picker" id="motivasi-time-picker">
+          <label>Jam pengingat:</label>
+          <input type="time" id="motivasi-notif-time" value="08:00">
+        </div>
+
+        <button id="save-settings-btn" class="btn-sketch btn-primary" style="margin-top:16px;width:100%"><span class="iconify" data-icon="mdi:content-save-outline" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Simpan Pengaturan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Setup Jadwal Sholat -->
+  <div id="modal-sholat" class="modal-overlay" style="display:none">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><span class="iconify" data-icon="mdi:mosque" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Atur Lokasi Jadwal Sholat</h3>
+        <button class="modal-close" data-modal="modal-sholat">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">Cari Kabupaten/Kota untuk mendapatkan jadwal sholat yang akurat.</p>
+        <div class="search-wrapper">
+          <input 
+            type="text" 
+            id="search-city" 
+            class="search-input" 
+            placeholder="Cari kab/kota... (contoh: Cirebon)"
+            autocomplete="off"
+          />
+          <div class="search-loading" id="search-city-loading" style="display:none">
+            <span class="spinner-small"></span>
+          </div>
+        </div>
+        <ul id="city-results" class="search-results">
+          <!-- Search results -->
+        </ul>
+        <div id="selected-city" class="selected-location" style="display:none">
+          <span class="selected-icon"><span class="iconify" data-icon="mdi:check" data-inline="false"></span></span>
+          <span id="selected-city-name">-</span>
+          <button class="btn-icon-small clear-city" title="Hapus"><span class="iconify" data-icon="mdi:close" data-inline="false"></span></button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sketch btn-secondary" data-modal="modal-sholat">Batal</button>
+        <button id="save-sholat-location" class="btn-sketch btn-primary" disabled>Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Setup Cuaca -->
+  <div id="modal-cuaca" class="modal-overlay" style="display:none">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><span class="iconify" data-icon="mdi:weather-partly-cloudy" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Atur Lokasi Cuaca</h3>
+        <button class="modal-close" data-modal="modal-cuaca">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">Cari wilayah (kelurahan/desa) untuk mendapatkan perkiraan cuaca yang akurat.</p>
+        <div class="search-wrapper">
+          <input 
+            type="text" 
+            id="search-region" 
+            class="search-input" 
+            placeholder="Cari wilayah... (contoh: Kempek)"
+            autocomplete="off"
+          />
+          <div class="search-loading" id="search-region-loading" style="display:none">
+            <span class="spinner-small"></span>
+          </div>
+        </div>
+        <ul id="region-results" class="search-results">
+          <!-- Search results -->
+        </ul>
+        <div id="selected-region" class="selected-location" style="display:none">
+          <span class="selected-icon"><span class="iconify" data-icon="mdi:check" data-inline="false"></span></span>
+          <span id="selected-region-name">-</span>
+          <button class="btn-icon-small clear-region" title="Hapus"><span class="iconify" data-icon="mdi:close" data-inline="false"></span></button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sketch btn-secondary" data-modal="modal-cuaca">Batal</button>
+        <button id="save-cuaca-location" class="btn-sketch btn-primary" disabled>Simpan</button>
       </div>
     </div>
   </div>
 </Layout>
 
 <script define:vars={{ apiBaseUrl }}>
-  // State
+  // ===== STATE =====
   let todos = [];
   let editingId = null;
   let apiKey = null;
   let userData = null;
 
-  // DOM Elements
+  // Location state
+  let selectedCity = null;    // For Sholat
+  let selectedRegion = null;  // For Cuaca
+
+  // Settings state (loaded from localStorage)
+  let settings = {
+    sholatLocation: null,
+    cuacaLocation: null,
+    notifications: {
+      todo: { enabled: true, time: '07:00' },
+      sholat: { enabled: true },
+      cuaca: { enabled: true, time: '06:00' },
+      motivasi: { enabled: true, time: '08:00' }
+    }
+  };
+
+  // Dummy data for prayer times
+  const dummyPrayerTimes = {
+    subuh: '04:32',
+    dzuhur: '11:56',
+    ashar: '15:12',
+    maghrib: '17:58',
+    isya: '19:10'
+  };
+
+  // Dummy weather data
+  const dummyWeather = {
+    current: {
+      temp: 28,
+      desc: 'Berawan',
+      icon: '<span class="iconify" data-icon="mdi:weather-partly-cloudy" data-inline="false"></span>',
+      humidity: 75,
+      wind: 12
+    },
+    forecast: [
+      { day: 'Besok', icon: '<span class="iconify" data-icon="mdi:weather-sunny" data-inline="false"></span>', temp: '27°' },
+      { day: 'Lusa', icon: '<span class="iconify" data-icon="mdi:weather-rainy" data-inline="false"></span>', temp: '25°' },
+      { day: 'Sab', icon: '<span class="iconify" data-icon="mdi:weather-partly-cloudy" data-inline="false"></span>', temp: '28°' }
+    ]
+  };
+
+  // Motivation quotes
+  const motivationQuotes = [
+    "Setiap hari adalah kesempatan baru untuk menjadi versi terbaik dari dirimu.",
+    "Kebahagiaan tidak datang dari apa yang kita miliki, tapi dari rasa syukur atas apa yang ada.",
+    "Jangan menunggu kesempatan, ciptakanlah kesempatan itu sendiri.",
+    "Kegagalan adalah kesempatan untuk memulai lagi dengan lebih cerdas.",
+    "Perjalanan seribu mil dimulai dengan satu langkah.",
+    "Bukan tentang seberapa cepat kamu berlari, tapi seberapa konsisten kamu melangkah.",
+    "Hari ini adalah hari terbaik untuk memulai sesuatu yang baru.",
+    "Kesuksesan adalah hasil dari persiapan, kerja keras, dan belajar dari kegagalan."
+  ];
+
+  // ===== DOM ELEMENTS =====
   const loadingOverlay = document.getElementById('loading-overlay');
   const homeContent = document.getElementById('home-content');
   const userNameEl = document.getElementById('user-name');
@@ -59,9 +341,129 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   const emptyStateEl = document.getElementById('empty-state');
   const newTodoInput = document.getElementById('new-todo-input');
   const addTodoBtn = document.getElementById('add-todo-btn');
-  const logoutBtn = document.getElementById('logout-btn');
+  const todoCountEl = document.getElementById('todo-count');
 
-  // Check authentication
+  // Welcome card
+  const welcomeCard = document.getElementById('welcome-card');
+  const setupBtn = document.getElementById('setup-btn');
+
+  // Sholat elements
+  const sholatNotConfigured = document.getElementById('sholat-not-configured');
+  const sholatConfigured = document.getElementById('sholat-configured');
+  const sholatLocationName = document.getElementById('sholat-location-name');
+  const prayerTimesEl = document.getElementById('prayer-times');
+  const nextPrayerInfo = document.getElementById('next-prayer-info');
+
+  // Cuaca elements
+  const cuacaNotConfigured = document.getElementById('cuaca-not-configured');
+  const cuacaConfigured = document.getElementById('cuaca-configured');
+  const cuacaLocationName = document.getElementById('cuaca-location-name');
+  const weatherDisplay = document.getElementById('weather-display');
+  const weatherForecast = document.getElementById('weather-forecast');
+
+  // Settings elements
+  const settingsToggle = document.getElementById('settings-toggle');
+  const settingsToggleIcon = document.getElementById('settings-toggle-icon');
+  const settingsContent = document.getElementById('settings-content');
+  const saveSettingsBtn = document.getElementById('save-settings-btn');
+
+  // Notification toggles
+  const notifTodo = document.getElementById('notif-todo');
+  const notifSholat = document.getElementById('notif-sholat');
+  const notifCuaca = document.getElementById('notif-cuaca');
+  const notifMotivasi = document.getElementById('notif-motivasi');
+
+  // Time pickers
+  const todoTimePicker = document.getElementById('todo-time-picker');
+  const cuacaTimePicker = document.getElementById('cuaca-time-picker');
+  const motivasiTimePicker = document.getElementById('motivasi-time-picker');
+  const todoNotifTime = document.getElementById('todo-notif-time');
+  const cuacaNotifTime = document.getElementById('cuaca-notif-time');
+  const motivasiNotifTime = document.getElementById('motivasi-notif-time');
+
+  // Modals
+  const modalSholat = document.getElementById('modal-sholat');
+  const modalCuaca = document.getElementById('modal-cuaca');
+  const searchCity = document.getElementById('search-city');
+  const searchCityLoading = document.getElementById('search-city-loading');
+  const cityResults = document.getElementById('city-results');
+  const selectedCityEl = document.getElementById('selected-city');
+  const selectedCityName = document.getElementById('selected-city-name');
+  const saveSholatLocation = document.getElementById('save-sholat-location');
+
+  const searchRegion = document.getElementById('search-region');
+  const searchRegionLoading = document.getElementById('search-region-loading');
+  const regionResults = document.getElementById('region-results');
+  const selectedRegionEl = document.getElementById('selected-region');
+  const selectedRegionName = document.getElementById('selected-region-name');
+  const saveCuacaLocation = document.getElementById('save-cuaca-location');
+
+  // ===== UTILITY FUNCTIONS =====
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  // ===== SETTINGS FUNCTIONS =====
+  function loadSettings() {
+    const saved = localStorage.getItem('app_settings');
+    if (saved) {
+      settings = JSON.parse(saved);
+    }
+    applySettingsToUI();
+  }
+
+  function saveSettings() {
+    localStorage.setItem('app_settings', JSON.stringify(settings));
+  }
+
+  function applySettingsToUI() {
+    // Notification toggles
+    notifTodo.checked = settings.notifications.todo.enabled;
+    notifSholat.checked = settings.notifications.sholat.enabled;
+    notifCuaca.checked = settings.notifications.cuaca.enabled;
+    notifMotivasi.checked = settings.notifications.motivasi.enabled;
+
+    // Time pickers
+    todoNotifTime.value = settings.notifications.todo.time;
+    cuacaNotifTime.value = settings.notifications.cuaca.time;
+    motivasiNotifTime.value = settings.notifications.motivasi.time;
+
+    // Time picker visibility
+    updateTimePickerVisibility();
+
+    // Location states
+    if (settings.sholatLocation) {
+      selectedCity = settings.sholatLocation;
+      renderSholatConfigured();
+    }
+
+    if (settings.cuacaLocation) {
+      selectedRegion = settings.cuacaLocation;
+      renderCuacaConfigured();
+    }
+  }
+
+  function updateTimePickerVisibility() {
+    todoTimePicker.classList.toggle('hidden', !notifTodo.checked);
+    cuacaTimePicker.classList.toggle('hidden', !notifCuaca.checked);
+    motivasiTimePicker.classList.toggle('hidden', !notifMotivasi.checked);
+  }
+
+  // ===== AUTH FUNCTIONS =====
   async function checkAuth() {
     apiKey = localStorage.getItem('api_key');
     const storedUserData = localStorage.getItem('user_data');
@@ -72,7 +474,6 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     }
 
     try {
-      // Verify token is still valid
       const response = await fetch(`${apiBaseUrl}/api/users/me`, {
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +493,6 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       return true;
     } catch (error) {
       console.error('Auth check failed:', error);
-      // Use cached data if network fails
       if (storedUserData) {
         userData = JSON.parse(storedUserData);
         return true;
@@ -102,7 +502,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     }
   }
 
-  // Fetch todos from API
+  // ===== TODO FUNCTIONS =====
   async function fetchTodos() {
     try {
       const response = await fetch(`${apiBaseUrl}/api/todos`, {
@@ -119,14 +519,12 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       }
     } catch (error) {
       console.error('Failed to fetch todos:', error);
-      // Fallback to localStorage if API fails
       const cachedTodos = localStorage.getItem('todos');
       todos = cachedTodos ? JSON.parse(cachedTodos) : [];
     }
     renderTodos();
   }
 
-  // Create todo
   async function createTodo(title) {
     try {
       const response = await fetch(`${apiBaseUrl}/api/todos`, {
@@ -142,7 +540,6 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
         const newTodo = (await response.json()).data;
         todos.unshift(newTodo);
       } else {
-        // Fallback: create locally
         const newTodo = {
           id: Date.now(),
           title,
@@ -163,9 +560,9 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     }
     saveTodosLocally();
     renderTodos();
+    updateWelcomeCardVisibility();
   }
 
-  // Update todo
   async function updateTodo(id, updates) {
     const todoIndex = todos.findIndex(t => t.id === id);
     if (todoIndex === -1) return;
@@ -194,13 +591,11 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     renderTodos();
   }
 
-  // Toggle todo completion (POST { check: true|false } to API)
   async function toggleTodo(id) {
     const todoIndex = todos.findIndex(t => t.id === id);
     if (todoIndex === -1) return;
     const todo = todos[todoIndex];
 
-    // If item has been marked deleted (deleted_at truthy), treat as checked and do not allow toggling
     if (todo.deleted_at) return;
 
     const currentCompleted = !!todo.completed;
@@ -232,13 +627,14 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     renderTodos();
   }
 
-  // Save todos locally as backup
   function saveTodosLocally() {
     localStorage.setItem('todos', JSON.stringify(todos));
   }
 
-  // Render todos
   function renderTodos() {
+    const activeTodos = todos.filter(t => !t.completed && !t.deleted_at);
+    todoCountEl.textContent = activeTodos.length;
+
     if (todos.length === 0) {
       todoListEl.innerHTML = '';
       emptyStateEl.style.display = 'block';
@@ -261,8 +657,8 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
         : '<span class="todo-title" data-action="edit">' + titleEsc + '</span>';
 
       const actionsHtml = editingId === todo.id
-        ? '<button class="btn-icon" data-action="save" title="Simpan">💾</button>'
-        : '<button class="btn-icon" data-action="edit" title="Edit">✏️</button>';
+        ? '<button class="btn-icon" data-action="save" title="Simpan"><span class="iconify" data-icon="mdi:content-save-outline" data-inline="false"></span></button>'
+        : '<button class="btn-icon" data-action="edit" title="Edit"><span class="iconify" data-icon="mdi:pencil" data-inline="false"></span></button>';
 
       return `
       <li class="todo-item ${itemClass}" data-id="${todo.id}">
@@ -284,14 +680,169 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     }).join('');
   }
 
-  // Escape HTML to prevent XSS
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  // ===== SHOLAT FUNCTIONS =====
+  function renderSholatConfigured() {
+    if (!selectedCity) return;
+
+    // Minimal display: show only stored location and a short note with source link.
+    sholatNotConfigured.style.display = 'none';
+    sholatConfigured.style.display = 'block';
+    sholatLocationName.textContent = selectedCity.name;
+
+    // Hide detailed elements
+    prayerTimesEl.innerHTML = '';
+    prayerTimesEl.style.display = 'none';
+
+    nextPrayerInfo.innerHTML = '';
+    const sholatNote = document.createElement('div');
+    sholatNote.className = 'info-note blue';
+    sholatNote.innerHTML = `
+      <div>
+        <div>Notifikasi akan dikirim pada waktunya di Telegram.</div>
+        <div class="copyright-note"><span class="iconify" data-icon="mdi:copyright" data-inline="false"></span> Sumber: <a class="source-link" href="https://api.myquran.com/" target="_blank" rel="noopener">myQuran (API v3)</a></div>
+      </div>
+    `;
+    nextPrayerInfo.appendChild(sholatNote);
   }
 
-  // Event Handlers
+  // ===== CUACA FUNCTIONS =====
+  function renderCuacaConfigured() {
+    if (!selectedRegion) return;
+
+    // Minimal display: show only stored location and a short note with source link.
+    cuacaNotConfigured.style.display = 'none';
+    cuacaConfigured.style.display = 'block';
+    cuacaLocationName.textContent = selectedRegion.name;
+
+    weatherDisplay.innerHTML = '';
+    weatherDisplay.style.display = 'none';
+    weatherForecast.innerHTML = '';
+    weatherForecast.style.display = 'none';
+
+    // Remove existing simple note if present
+    const prev = cuacaConfigured.querySelector('.cuaca-simple-note');
+    if (prev) prev.remove();
+
+    const cuacaNote = document.createElement('div');
+    cuacaNote.className = 'info-note blue';
+    cuacaNote.innerHTML = `
+      <div>
+        <div>Notifikasi akan dikirim pada waktunya di Telegram.</div>
+        <div class="copyright-note"><span class="iconify" data-icon="mdi:copyright" data-inline="false"></span> Sumber: <a class="source-link" href="https://data.bmkg.go.id/prakiraan-cuaca/" target="_blank" rel="noopener">BMKG</a> (Badan Meteorologi, Klimatologi, dan Geofisika)</div>
+      </div>
+    `;
+    cuacaConfigured.appendChild(cuacaNote);
+  }
+
+  // ===== SEARCH FUNCTIONS (REAL API) =====
+  async function searchCities(query) {
+    if (!query || query.length < 2) {
+      cityResults.innerHTML = '';
+      return;
+    }
+
+    searchCityLoading.style.display = 'block';
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/city?q=${encodeURIComponent(query)}`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const results = data.data || [];
+        
+        if (results.length === 0) {
+          cityResults.innerHTML = '<li class="no-results">Tidak ditemukan hasil</li>';
+        } else {
+          cityResults.innerHTML = results.map(city => `
+            <li class="search-result-item" data-id="${city.id}" data-name="${escapeHtml(city.name)}">
+              <div class="result-name">${escapeHtml(city.name)}</div>
+              <div class="result-detail">${escapeHtml(city.province || '')}</div>
+            </li>
+          `).join('');
+        }
+      } else {
+        cityResults.innerHTML = '<li class="no-results">Gagal mencari data</li>';
+      }
+    } catch (error) {
+      console.error('Search city failed:', error);
+      cityResults.innerHTML = '<li class="no-results">Gagal mencari data</li>';
+    }
+
+    searchCityLoading.style.display = 'none';
+  }
+
+  async function searchRegions(query) {
+    if (!query || query.length < 2) {
+      regionResults.innerHTML = '';
+      return;
+    }
+
+    searchRegionLoading.style.display = 'block';
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/region?q=${encodeURIComponent(query)}`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const results = data.data || [];
+        
+        if (results.length === 0) {
+          regionResults.innerHTML = '<li class="no-results">Tidak ditemukan hasil</li>';
+        } else {
+          regionResults.innerHTML = results.map(region => `
+            <li class="search-result-item" data-id="${region.id}" data-name="${escapeHtml(region.name)}">
+              <div class="result-name">${escapeHtml(region.name)}</div>
+              <div class="result-detail">${escapeHtml(region.full_path || region.district || '')}</div>
+            </li>
+          `).join('');
+        }
+      } else {
+        regionResults.innerHTML = '<li class="no-results">Gagal mencari data</li>';
+      }
+    } catch (error) {
+      console.error('Search region failed:', error);
+      regionResults.innerHTML = '<li class="no-results">Gagal mencari data</li>';
+    }
+
+    searchRegionLoading.style.display = 'none';
+  }
+
+  // Debounced search
+  const debouncedSearchCities = debounce(searchCities, 300);
+  const debouncedSearchRegions = debounce(searchRegions, 300);
+
+  // ===== MODAL FUNCTIONS =====
+  function openModal(modalId) {
+    document.getElementById(modalId).style.display = 'flex';
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    // Reset search state
+    if (modalId === 'modal-sholat') {
+      searchCity.value = '';
+      cityResults.innerHTML = '';
+      if (!settings.sholatLocation) {
+        selectedCityEl.style.display = 'none';
+        selectedCity = null;
+        saveSholatLocation.disabled = true;
+      }
+    } else if (modalId === 'modal-cuaca') {
+      searchRegion.value = '';
+      regionResults.innerHTML = '';
+      if (!settings.cuacaLocation) {
+        selectedRegionEl.style.display = 'none';
+        selectedRegion = null;
+        saveCuacaLocation.disabled = true;
+      }
+    }
+  }
+
+  // ===== EVENT HANDLERS =====
   function handleTodoClick(e) {
     const target = e.target;
     const action = target.dataset.action;
@@ -308,7 +859,6 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       case 'edit':
         editingId = id;
         renderTodos();
-        // Focus the newly created input inside the re-rendered list
         setTimeout(() => {
           const newItem = todoListEl.querySelector(`[data-id="${id}"]`);
           const input = newItem ? newItem.querySelector('.todo-title-input') : null;
@@ -328,7 +878,6 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     }
   }
 
-  // Handle Enter key in edit input
   function handleKeyDown(e) {
     if (e.key === 'Enter') {
       const input = e.target;
@@ -346,7 +895,6 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     }
   }
 
-  // Add new todo
   function handleAddTodo() {
     const title = newTodoInput.value.trim();
     if (title) {
@@ -356,19 +904,37 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     }
   }
 
-  // Logout
-  function handleLogout() {
-    localStorage.removeItem('api_key');
-    localStorage.removeItem('user_data');
-    localStorage.removeItem('todos');
-    window.location.href = '/';
+  function handleSaveSettings() {
+    settings.notifications.todo.enabled = notifTodo.checked;
+    settings.notifications.todo.time = todoNotifTime.value;
+    settings.notifications.sholat.enabled = notifSholat.checked;
+    settings.notifications.cuaca.enabled = notifCuaca.checked;
+    settings.notifications.cuaca.time = cuacaNotifTime.value;
+    settings.notifications.motivasi.enabled = notifMotivasi.checked;
+    settings.notifications.motivasi.time = motivasiNotifTime.value;
+    // UI: show saving state
+    saveSettingsBtn.disabled = true;
+    saveSettingsBtn.innerHTML = '<span class="iconify spin" data-icon="mdi:loading" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Menyimpan...';
+
+    // Persist settings
+    saveSettings();
+
+    // Show success feedback
+    saveSettingsBtn.innerHTML = '<span class="iconify" data-icon="mdi:check-circle" data-inline="false" style="vertical-align:middle;margin-right:8px"></span> Tersimpan!';
+
+    setTimeout(() => {
+      saveSettingsBtn.innerHTML = '<span class="iconify" data-icon="mdi:content-save-outline" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Simpan Pengaturan';
+      saveSettingsBtn.disabled = false;
+    }, 2000);
   }
 
-  // Initialize
+  // ===== INITIALIZE =====
   async function init() {
     const isAuthenticated = await checkAuth();
-    
     if (!isAuthenticated) return;
+
+    // Load settings
+    loadSettings();
 
     // Show content
     userNameEl.textContent = userData.name || 'User';
@@ -378,14 +944,130 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     // Fetch todos
     await fetchTodos();
 
-    // Event listeners
+    // ===== EVENT LISTENERS =====
+
+    // Todo
     todoListEl.addEventListener('click', handleTodoClick);
     todoListEl.addEventListener('keydown', handleKeyDown);
     addTodoBtn.addEventListener('click', handleAddTodo);
     newTodoInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleAddTodo();
     });
-    logoutBtn.addEventListener('click', handleLogout);
+
+    // Settings toggle
+    settingsToggle.addEventListener('click', () => {
+      settingsContent.classList.toggle('collapsed');
+      settingsToggleIcon.classList.toggle('collapsed');
+    });
+
+    // Notification toggles - update time picker visibility
+    notifTodo.addEventListener('change', updateTimePickerVisibility);
+    notifCuaca.addEventListener('change', updateTimePickerVisibility);
+    notifMotivasi.addEventListener('change', updateTimePickerVisibility);
+
+    // Save settings
+    saveSettingsBtn.addEventListener('click', handleSaveSettings);
+
+    // Open sholat modal
+    document.querySelectorAll('.open-sholat-setup, .change-sholat-location').forEach(btn => {
+      btn.addEventListener('click', () => openModal('modal-sholat'));
+    });
+
+    // Open cuaca modal
+    document.querySelectorAll('.open-cuaca-setup, .change-cuaca-location').forEach(btn => {
+      btn.addEventListener('click', () => openModal('modal-cuaca'));
+    });
+
+    // Close modals
+    document.querySelectorAll('.modal-close, .modal-footer .btn-secondary').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const modalId = e.target.dataset.modal;
+        if (modalId) closeModal(modalId);
+      });
+    });
+
+    // Close modal on backdrop click
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal(modal.id);
+      });
+    });
+
+    // City search
+    searchCity.addEventListener('input', (e) => {
+      debouncedSearchCities(e.target.value);
+    });
+
+    // City result selection
+    cityResults.addEventListener('click', (e) => {
+      const item = e.target.closest('.search-result-item');
+      if (item) {
+        selectedCity = {
+          id: item.dataset.id,
+          name: item.dataset.name
+        };
+        selectedCityName.textContent = selectedCity.name;
+        selectedCityEl.style.display = 'flex';
+        cityResults.innerHTML = '';
+        searchCity.value = '';
+        saveSholatLocation.disabled = false;
+      }
+    });
+
+    // Clear city selection
+    document.querySelector('.clear-city')?.addEventListener('click', () => {
+      selectedCity = null;
+      selectedCityEl.style.display = 'none';
+      saveSholatLocation.disabled = true;
+    });
+
+    // Save sholat location
+    saveSholatLocation.addEventListener('click', () => {
+      if (selectedCity) {
+        settings.sholatLocation = selectedCity;
+        saveSettings();
+        renderSholatConfigured();
+        closeModal('modal-sholat');
+      }
+    });
+
+    // Region search
+    searchRegion.addEventListener('input', (e) => {
+      debouncedSearchRegions(e.target.value);
+    });
+
+    // Region result selection
+    regionResults.addEventListener('click', (e) => {
+      const item = e.target.closest('.search-result-item');
+      if (item) {
+        selectedRegion = {
+          id: item.dataset.id,
+          name: item.dataset.name
+        };
+        selectedRegionName.textContent = selectedRegion.name;
+        selectedRegionEl.style.display = 'flex';
+        regionResults.innerHTML = '';
+        searchRegion.value = '';
+        saveCuacaLocation.disabled = false;
+      }
+    });
+
+    // Clear region selection
+    document.querySelector('.clear-region')?.addEventListener('click', () => {
+      selectedRegion = null;
+      selectedRegionEl.style.display = 'none';
+      saveCuacaLocation.disabled = true;
+    });
+
+    // Save cuaca location
+    saveCuacaLocation.addEventListener('click', () => {
+      if (selectedRegion) {
+        settings.cuacaLocation = selectedRegion;
+        saveSettings();
+        renderCuacaConfigured();
+        closeModal('modal-cuaca');
+      }
+    });
   }
 
   // Start the app

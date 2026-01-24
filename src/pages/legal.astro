@@ -1,0 +1,75 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <main style="max-width:900px;margin:40px auto;padding:20px">
+    <h1 style="margin-top:0">Terms of Service & Privacy Policy</h1>
+
+    <section style="margin-top:18px">
+      <h2>Summary (short)</h2>
+      <p>We operate a Telegram bot that provides weather (BMKG), prayer times (myQuran), todo reminders and motivational messages. This page explains what data we store, where it is stored, and how we use it. We value transparency and professional handling of user data.</p>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>Data we store</h2>
+      <p>To provide the service we persist a small set of records associated with your Telegram account:</p>
+      <ul>
+        <li>Users: your name, Telegram id (telegram_id), generated API key (api_key) used for authenticating the web app, and timestamps.</li>
+        <li>Todos: title, timestamps and a reference to your Telegram id (user_id).</li>
+        <li>Per-user notification settings: which notifications are enabled, preferred reminder times, selected city/region identifiers.</li>
+      </ul>
+      <p>We do NOT mirror full Telegram chat histories. The bot communicates via Telegram; chat content remains in Telegram unless you explicitly send data to the bot which we then store as part of normal app data (for example when you create a todo via bot command).</p>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>Database & storage</h2>
+      <p>The application stores data in a SQLite database hosted on Cloudflare D1. The internal schema and migration details are considered implementation details and are not displayed here. We store only the minimal fields required to run the service (user identifiers, todos, and notification preferences) and use indexes/migrations to keep queries efficient.</p>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>How we use your data</h2>
+      <ul>
+        <li>Authentication: we use <code>api_key</code> and <code>telegram_id</code> to identify your account when you open the web dashboard.</li>
+        <li>Delivering reminders: notification settings determine which automated jobs run for your account.</li>
+        <li>Features like todos are stored so the bot and web UI can show and manage them.</li>
+      </ul>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>Third-party data sources</h2>
+      <p>Some content is pulled from third-party APIs:</p>
+      <ul>
+        <li><strong>Prayer times:</strong> myQuran API v3 (&lt;https://api.myquran.com/&gt;).</li>
+        <li><strong>Weather:</strong> BMKG (&lt;https://api.bmkg.go.id/&gt;).</li>
+      </ul>
+      <p>We display and link to these sources where appropriate and credit them in the UI.</p>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>Security & access</h2>
+      <p>We host the SQLite database on Cloudflare D1. Access to the database is restricted to the application runtime; credentials/secrets are stored using environment variables and not committed to source. We follow standard best-practices: least privilege for services, HTTPS for all external calls, and minimal retention of personally identifiable data.</p>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>Data sharing & selling</h2>
+      <p>We do not sell your data. Data is used only to provide the services you've enabled. We may need to share limited data with third-party providers to fetch content (e.g., BMKG/myQuran) but we do not provide your personal data to advertisers or brokers.</p>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>Retention & deletion</h2>
+      <p>You can delete your account via the bot or dashboard; that will remove your records from the database (users, todos, and notifications). For audit and safety reasons some logs may be retained for a short period according to our operational needs.</p>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>Contact</h2>
+      <p>If you have questions or requests about your data, contact the bot owner via the Telegram bot or the contact method in the project README.</p>
+    </section>
+
+    <section style="margin-top:18px">
+      <h2>Acceptance</h2>
+      <p>Using the bot or dashboard implies acceptance of these terms. We aim to be transparent and professional; if you have concerns, please reach out.</p>
+    </section>
+
+  </main>
+</Layout>

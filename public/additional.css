@@ -1,0 +1,599 @@
+
+/* Dashboard Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.feature-card {
+  min-height: 200px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.badge {
+  background: var(--accent-color, #6366f1);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.feature-icon {
+  font-size: 1.2rem;
+}
+
+/* Setup Prompt */
+.setup-prompt {
+  text-align: center;
+  padding: 24px;
+  color: #666;
+}
+
+.setup-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.setup-hint {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* Location Badge */
+.location-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f0f4ff;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.location-icon {
+  font-size: 1rem;
+}
+
+.btn-icon-small {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.btn-icon-small:hover {
+  opacity: 1;
+}
+
+/* Prayer Times */
+.prayer-times-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.prayer-time-item {
+  text-align: center;
+  padding: 12px 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+  .prayer-time-item.active {
+    background: var(--accent-color, #3b82f6);
+    color: white;
+  }
+
+  .prayer-time-item.next {
+    background: #fef3c7;
+    border: 2px solid #f59e0b;
+  }
+
+.prayer-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prayer-time {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.next-prayer-info {
+  margin-top: 12px;
+  /* let .info-note handle visual styling */
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+/* Weather Display */
+.weather-display {
+  text-align: center;
+  padding: 16px;
+}
+
+.weather-icon {
+  font-size: 3rem;
+}
+
+.weather-temp {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.weather-desc {
+  color: #666;
+  text-transform: capitalize;
+}
+
+.weather-details {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.weather-forecast {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.forecast-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.forecast-day {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.forecast-icon {
+  font-size: 1.5rem;
+  margin: 4px 0;
+}
+
+.forecast-temp {
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+/* Settings */
+.settings-card {
+  background: #fafafa;
+}
+
+.toggle-icon {
+  transition: transform 0.3s;
+}
+
+.toggle-icon.collapsed {
+  transform: rotate(-90deg);
+}
+
+.settings-content {
+  transition: all 0.3s;
+}
+
+.settings-content.collapsed {
+  display: none;
+}
+
+.settings-description {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.setting-icon {
+  font-size: 1.1rem;
+}
+
+.setting-desc {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+}
+
+.setting-time-picker {
+  padding: 12px 16px;
+  background: #f0f4ff;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-time-picker label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.setting-time-picker input[type="time"] {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.setting-time-picker.hidden {
+  display: none;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .3s;
+  border-radius: 26px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+  .toggle-switch input:checked + .toggle-slider {
+    background-color: var(--accent-color, #3b82f6);
+  }
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-hint {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+}
+
+/* Search */
+.search-wrapper {
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.search-loading {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.spinner-small {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Iconify spin helper */
+.iconify.spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+.search-results {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.search-results:empty {
+  display: none;
+}
+
+.search-result-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: #f0f4ff;
+}
+
+.search-result-item .result-name {
+  font-weight: 600;
+}
+
+.search-result-item .result-detail {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+  .selected-location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(59,130,246,0.06); /* subtle blue tint */
+    border-radius: 8px;
+    margin-top: 12px;
+  }
+
+  .selected-icon {
+    color: var(--accent-color, #3b82f6);
+    font-weight: bold;
+  }
+
+.no-results {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+}
+
+.copyright-note {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Compact info note used for minimal location display */
+.info-note {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  width: 100%;
+  background: #fffaf0;
+  border-left: 3px solid #f59e0b;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #444;
+  margin-top: 8px;
+}
+
+.info-note .note-icon {
+  font-size: 1.25rem;
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+}
+
+.source-link {
+  color: var(--accent-color, #6366f1);
+  font-weight: 600;
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(99,102,241,0.08);
+  margin-left: 6px;
+}
+
+.source-link:hover {
+  background: rgba(99,102,241,0.14);
+}
+
+.info-note .copyright-note {
+  margin-top: 6px;
+  text-align: left;
+  color: #666;
+  font-size: 0.8rem;
+}
+
+/* Blue variant for Cuaca info (match sholat layout, blue tone) */
+.info-note.cuaca {
+  background: #f0f7ff;
+  border-left-color: #3b82f6;
+}
+
+.info-note.cuaca .note-icon {
+  color: #3b82f6;
+}
+
+.info-note.cuaca .copyright-note {
+  color: #475569;
+}
+
+/* Blue variant shared by sholat & cuaca when using blue theme */
+.info-note.blue {
+  background: #f0f7ff;
+  border-left-color: #3b82f6;
+}
+
+.info-note.blue .note-icon {
+  color: #3b82f6;
+}
+
+.info-note.blue .source-link {
+  color: #1d4ed8;
+  background: rgba(59,130,246,0.06);
+}
+
+.info-note.blue .copyright-note {
+  color: #475569;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .prayer-times-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .weather-forecast {
+    flex-wrap: wrap;
+  }
+
+  .forecast-item {
+    flex: 1 1 calc(33% - 8px);
+  }
+}

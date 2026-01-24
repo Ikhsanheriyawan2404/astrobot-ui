@@ -23,6 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="/sketch.css" />
+    <link rel="stylesheet" href="/additional.css" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Asisten Bot Telegram — Pantau Cuaca BMKG, Pengingat Sholat, Reminder Todo" />
     <meta property="og:description" content="Bot Telegram gratis untuk pantau cuaca BMKG, pengingat sholat, reminder todo, dan pengingat harian." />
@@ -52,6 +53,12 @@
     <main>
       <slot />
     </main>
-    <footer class="site">© {new Date().getFullYear()} — Built with Astro</footer>
+    <footer class="site">
+      © {new Date().getFullYear()} — Built with Astro · 
+      <a href="https://brogrammer.id" target="_blank" rel="noopener">
+        brogrammer.id
+      </a>
+    </footer>
+    <script src="https://code.iconify.design/2/2.2.1/iconify.min.js"></script>
   </body>
 </html>

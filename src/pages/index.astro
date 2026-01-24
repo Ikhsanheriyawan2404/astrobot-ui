@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-const telegramBotUrl = 'https://t.me/your_bot_username';
+const telegramBotUrl = import.meta.env.TELEGRAM_BOT_URL;
 const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
 ---
 
@@ -28,25 +28,45 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     <h2 style="margin:0 0 16px;font-family:Patrick Hand, system-ui;text-align:center">Fitur-fitur yang *No Cap*</h2>
     <div class="features">
       <div class="card">
-        <h3 style="margin:0 0 6px">🌦️ Pantau Cuaca BMKG</h3>
+        <h3 style="margin:0 0 6px"><span class="iconify" data-icon="mdi:weather-partly-cloudy" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Pantau Cuaca BMKG</h3>
         <p class="small">Dapet update cuaca harian dari BMKG, jadi kamu nggak lagi keluar rumah pas langit udah siap nge-prank.</p>
       </div>
       <div class="card">
-        <h3 style="margin:0 0 6px">🕌 Pengingat Sholat Harian</h3>
+        <h3 style="margin:0 0 6px"><span class="iconify" data-icon="mdi:mosque" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Pengingat Sholat Harian</h3>
         <p class="small">Bot bantu ngingetin waktu sholat harian kamu, otomatis disesuaikan dengan kota yang kamu pilih.</p>
       </div>
       <div class="card">
-        <h3 style="margin:0 0 6px">✅ Reminder Todo</h3>
+        <h3 style="margin:0 0 6px"><span class="iconify" data-icon="mdi:check-circle-outline" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Reminder Todo</h3>
         <p class="small">To-do list numpuk? Serahin ke bot. Tinggal catet, nanti dia yang nagih dengan lembut tapi tegas.</p>
       </div>
       <div class="card">
-        <h3 style="margin:0 0 6px">💬 Pengingat Harian</h3>
+        <h3 style="margin:0 0 6px"><span class="iconify" data-icon="mdi:message-text" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Pengingat Harian</h3>
         <p class="small">Quote pagi biar nggak baper sama hari Senin, plus pengingat kecil-kecil yang bikin kamu inget buat istirahat juga.</p>
       </div>
       <!-- <div class="card">
         <h3 style="margin:0 0 6px">📖 Ayat & Hadis Harian</h3>
         <p class="small">Ayat Al-Qur'an atau hadis dikirim otomatis tiap pagi. Opsi tema Ramadan & pembelajaran Islam.</p>
       </div> -->
+    </div>
+  </section>
+
+  <!-- Data Sources -->
+  <section class="section">
+    <div class="card">
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.95rem;color:#374151">
+        <div>
+          <span style="vertical-align:middle;margin-right:8px"><span class="iconify" data-icon="mdi:copyright" data-inline="false"></span></span>
+          Sumber data: <a href="https://api.myquran.com/" target="_blank" rel="noopener" style="color:#1d4ed8;font-weight:600;text-decoration:none;padding:2px 6px;border-radius:6px;background:rgba(59,130,246,0.06)">myQuran (API v3)</a>
+        </div>
+        <div>
+          <span style="vertical-align:middle;margin-right:8px"><span class="iconify" data-icon="mdi:copyright" data-inline="false"></span></span>
+          Sumber data: <a href="https://api.bmkg.go.id/" target="_blank" rel="noopener" style="color:#1d4ed8;font-weight:600;text-decoration:none;padding:2px 6px;border-radius:6px;background:rgba(59,130,246,0.06)">BMKG</a>
+        </div>
+          <div>
+            <span style="vertical-align:middle;margin-right:8px"><span class="iconify" data-icon="mdi:hand-heart" data-inline="false"></span></span>
+            Thanks to <a href="https://api.myquran.com/" target="_blank" rel="noopener" style="color:#1d4ed8;font-weight:600;text-decoration:none">myQuran</a> and <a href="https://api.bmkg.go.id/" target="_blank" rel="noopener" style="color:#1d4ed8;font-weight:600;text-decoration:none">BMKG</a> for providing the prayer times and weather forecast data.”.
+          </div>
+      </div>
     </div>
   </section>
 
@@ -62,7 +82,10 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       <h2 style="margin:0 0 12px;font-family:Patrick Hand, system-ui">FAQ</h2>
       <p class="small"><strong>T:</strong> Apakah perlu install aplikasi?<br/><strong>J:</strong> Tidak, cukup pakai Telegram yang sudah ada di HP kamu.</p>
       <p class="small" style="margin-top:8px"><strong>T:</strong> Bisa matiin beberapa opsi notif?<br/><strong>J:</strong> Bisa banget. Kamu yang pegang kendali, bot cuma nurut.</p>
-      <p class="small" style="margin-top:8px"><strong>T:</strong> Data aman?<br/><strong>J:</strong> Semua data ngendon di chat Telegram kamu. Nggak dijual, nggak dipajang, nggak kemana-mana.</p>
+      <p class="small" style="margin-top:8px">
+        <strong>T:</strong> Data aman?<br/>
+        <strong>J:</strong> Aman kok! Kita cuma nyimpen data penting buat fitur kerja (akun, todo, pengaturan). Chat tetep di Telegram. Gak dijual. Cuma dipakai buat bikin fitur kamu jalan lancar. Cek detailnya di <a href="/legal">Terms &amp; Privacy</a>.
+      </p>
     </div>
   </section>
 </Layout>
