@@ -645,3 +645,62 @@
     flex: 1 1 calc(33% - 8px);
   }
 }
+
+/* Additional mobile fixes: ensure flex children can shrink and cards don't cause horizontal overflow */
+@media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .dashboard-grid, .card, .feature-card, .settings-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Allow flex children to shrink to prevent overflow from long content */
+  .todo-item, .todo-content, .todo-title, .todo-title-input,
+  .setting-item, .setting-info, .setting-controls,
+  .prayer-time-item, .forecast-item {
+    min-width: 0;
+  }
+
+  .prayer-times-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .prayer-times-grid .prayer-time-item {
+    white-space: normal;
+  }
+
+  /* Make forecast items wrap and use two columns on small screens */
+  .weather-forecast {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .forecast-item {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
+  }
+
+  /* Ensure inputs respect container width */
+  .todo-input, .search-input {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .todo-actions, .todo-content {
+    overflow: visible;
+  }
+
+  .setting-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .setting-controls {
+    justify-content: flex-start;
+    width: auto;
+  }
+}
