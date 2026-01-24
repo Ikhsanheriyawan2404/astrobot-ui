@@ -22,7 +22,10 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       <div class="card feature-card" id="todo-section">
         <div class="card-header">
           <h2><span class="iconify" data-icon="mdi:check-circle-outline" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Todo List</h2>
-          <span class="badge" id="todo-count">0</span>
+          <div class="todo-header-actions">
+            <span class="badge" id="todo-count">0</span>
+            <button type="button" class="link-btn danger" id="clear-todos-btn">Hapus semua</button>
+          </div>
         </div>
 
         <div class="todo-input-wrapper">
@@ -342,6 +345,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   const newTodoInput = document.getElementById('new-todo-input');
   const addTodoBtn = document.getElementById('add-todo-btn');
   const todoCountEl = document.getElementById('todo-count');
+  const clearTodosBtn = document.getElementById('clear-todos-btn');
 
   // Welcome card
   const welcomeCard = document.getElementById('welcome-card');
@@ -560,11 +564,15 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     }
     saveTodosLocally();
     renderTodos();
-    updateWelcomeCardVisibility();
+  }
+
+  function findTodoIndex(id) {
+    const targetId = String(id);
+    return todos.findIndex(t => String(t.id) === targetId);
   }
 
   async function updateTodo(id, updates) {
-    const todoIndex = todos.findIndex(t => t.id === id);
+    const todoIndex = findTodoIndex(id);
     if (todoIndex === -1) return;
 
     try {
@@ -592,14 +600,22 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   }
 
   async function toggleTodo(id) {
-    const todoIndex = todos.findIndex(t => t.id === id);
-    if (todoIndex === -1) return;
+    const todoIndex = findTodoIndex(id);
+    if (todoIndex === -1) {
+      console.log('toggleTodo: todo not found for id', id);
+      return;
+    }
     const todo = todos[todoIndex];
 
-    if (todo.deleted_at) return;
+    if (todo.deleted_at) {
+      console.log('toggleTodo: todo is deleted, skipping');
+      return;
+    }
 
     const currentCompleted = !!todo.completed;
     const newCheck = !currentCompleted;
+
+    console.log('toggleTodo: calling API', { id, newCheck, url: `${apiBaseUrl}/api/todos/${id}` });
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/todos/${id}`, {
@@ -611,11 +627,15 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
         body: JSON.stringify({ check: newCheck })
       });
 
+      console.log('toggleTodo: API response status', response.status);
+
       if (response.ok) {
         const body = await response.json();
+        console.log('toggleTodo: API response body', body);
         const updated = body.data ?? { ...todo, completed: newCheck };
         todos[todoIndex] = updated;
       } else {
+        console.log('toggleTodo: API failed, updating locally');
         todos[todoIndex] = { ...todo, completed: newCheck };
       }
     } catch (err) {
@@ -631,6 +651,40 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     localStorage.setItem('todos', JSON.stringify(todos));
   }
 
+  async function deleteAllTodos() {
+    if (!clearTodosBtn) return;
+    const confirmed = window.confirm('Hapus semua todo? Data yang sudah dihapus tidak bisa dikembalikan.');
+    if (!confirmed) return;
+
+    const originalLabel = clearTodosBtn.textContent;
+    clearTodosBtn.disabled = true;
+    clearTodosBtn.textContent = 'Menghapus...';
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/todos`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete todos');
+      }
+
+      todos = [];
+      saveTodosLocally();
+      renderTodos();
+    } catch (error) {
+      console.error('Failed to delete all todos:', error);
+      alert('Gagal menghapus semua todo. Coba lagi.');
+    } finally {
+      clearTodosBtn.disabled = false;
+      clearTodosBtn.textContent = originalLabel;
+    }
+  }
+
   function renderTodos() {
     const activeTodos = todos.filter(t => !t.completed && !t.deleted_at);
     todoCountEl.textContent = activeTodos.length;
@@ -644,29 +698,29 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     emptyStateEl.style.display = 'none';
     
     todoListEl.innerHTML = todos.map(todo => {
+      const todoId = String(todo.id);
       const isDeleted = !!todo.deleted_at;
       const isChecked = !!todo.completed || isDeleted;
       const itemClass = isChecked ? 'completed' : '';
       const checkedAttr = isChecked ? ' checked="checked"' : '';
-      const disabledAttr = isDeleted ? ' disabled="disabled"' : '';
-      const dataActionAttr = isDeleted ? '' : ' data-action="toggle"';
+      const dataActionAttr = '';
+      const isEditing = editingId !== null && String(editingId) === todoId;
 
       const titleEsc = escapeHtml(todo.title || '');
-      const contentHtml = editingId === todo.id
+      const contentHtml = isEditing
         ? '<input type="text" class="todo-title-input" value="' + titleEsc + '" data-action="edit-input" />'
         : '<span class="todo-title" data-action="edit">' + titleEsc + '</span>';
 
-      const actionsHtml = editingId === todo.id
+      const actionsHtml = isEditing
         ? '<button class="btn-icon" data-action="save" title="Simpan"><span class="iconify" data-icon="mdi:content-save-outline" data-inline="false"></span></button>'
         : '<button class="btn-icon" data-action="edit" title="Edit"><span class="iconify" data-icon="mdi:pencil" data-inline="false"></span></button>';
 
       return `
-      <li class="todo-item ${itemClass}" data-id="${todo.id}">
+      <li class="todo-item ${itemClass}" data-id="${todoId}">
         <input 
           type="checkbox" 
           class="todo-checkbox" 
           ${checkedAttr}
-          ${disabledAttr}
           ${dataActionAttr}
         />
         <div class="todo-content">
@@ -850,7 +904,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     
     if (!todoItem) return;
     
-    const id = parseInt(todoItem.dataset.id);
+    const id = todoItem.dataset.id;
 
     switch (action) {
       case 'toggle':
@@ -869,11 +923,12 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
         }, 0);
         break;
       case 'save':
-        const input = todoItem.querySelector('.todo-title-input');
-        if (input && input.value.trim()) {
-          updateTodo(id, { title: input.value.trim() });
+        const saveInput = todoItem.querySelector('.todo-title-input');
+        if (saveInput && saveInput.value.trim()) {
+          updateTodo(id, { title: saveInput.value.trim() });
         }
         editingId = null;
+        renderTodos();
         break;
     }
   }
@@ -883,7 +938,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       const input = e.target;
       if (input.dataset.action === 'edit-input') {
         const todoItem = input.closest('.todo-item');
-        const id = parseInt(todoItem.dataset.id);
+        const id = todoItem.dataset.id;
         if (input.value.trim()) {
           updateTodo(id, { title: input.value.trim() });
         }
@@ -949,10 +1004,21 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     // Todo
     todoListEl.addEventListener('click', handleTodoClick);
     todoListEl.addEventListener('keydown', handleKeyDown);
+    todoListEl.addEventListener('change', (e) => {
+      if (e.target.classList.contains('todo-checkbox')) {
+        const todoItem = e.target.closest('.todo-item');
+        if (todoItem) {
+          const id = todoItem.dataset.id;
+          toggleTodo(id);
+        }
+      }
+    });
     addTodoBtn.addEventListener('click', handleAddTodo);
     newTodoInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleAddTodo();
     });
+
+    clearTodosBtn?.addEventListener('click', deleteAllTodos);
 
     // Settings toggle
     settingsToggle.addEventListener('click', () => {
