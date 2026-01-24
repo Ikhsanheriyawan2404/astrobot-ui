@@ -1,9 +1,15 @@
 
-/* Dashboard Grid */
+/* Dashboard Grid - mobile first to avoid horizontal scroll */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
 }
 
 .feature-card {
@@ -89,6 +95,9 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
+@media (max-width: 480px) {
+  .prayer-times-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
 .prayer-time-item {
   text-align: center;
@@ -165,6 +174,10 @@
   display: flex;
   gap: 8px;
   margin-top: 16px;
+}
+@media (max-width: 480px) {
+  .weather-forecast { flex-wrap: wrap; gap: 6px; }
+  .forecast-item { flex: 1 1 calc(50% - 6px); }
 }
 
 .forecast-item {
