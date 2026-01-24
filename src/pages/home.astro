@@ -421,6 +421,12 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     };
   }
 
+  // Normalize server todo shape to include `completed` (backend uses `deleted_at` as soft-delete)
+  function normalizeTodo(todo) {
+    if (!todo) return todo;
+    return Object.assign({}, todo, { completed: !!todo.deleted_at });
+  }
+
   // ===== SETTINGS FUNCTIONS =====
   function loadSettings() {
     const saved = localStorage.getItem('app_settings');
@@ -607,7 +613,9 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       });
 
       if (response.ok) {
-        todos = (await response.json()).data;
+        const body = await response.json();
+        const data = body.data || [];
+        todos = data.map(normalizeTodo);
       } else {
         todos = [];
       }
@@ -631,7 +639,8 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       });
 
       if (response.ok) {
-        const newTodo = (await response.json()).data;
+        const body = await response.json();
+        const newTodo = normalizeTodo(body.data);
         todos.unshift(newTodo);
       } else {
         const newTodo = {
@@ -676,7 +685,8 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       });
 
       if (response.ok) {
-        const updatedTodo = (await response.json()).data;
+        const body = await response.json();
+        const updatedTodo = normalizeTodo(body.data);
         todos[todoIndex] = updatedTodo;
       } else {
         todos[todoIndex] = { ...todos[todoIndex], ...updates };
@@ -692,20 +702,16 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   async function toggleTodo(id) {
     const todoIndex = findTodoIndex(id);
     if (todoIndex === -1) {
-      console.log('toggleTodo: todo not found for id', id);
       return;
     }
     const todo = todos[todoIndex];
 
-    if (todo.deleted_at) {
-      console.log('toggleTodo: todo is deleted, skipping');
-      return;
-    }
+      if (todo.deleted_at) {
+        console.warn('toggleTodo: todo has deleted_at flag; attempting toggle anyway for robustness');
+      }
 
     const currentCompleted = !!todo.completed;
     const newCheck = !currentCompleted;
-
-    console.log('toggleTodo: calling API', { id, newCheck, url: `${apiBaseUrl}/api/todos/${id}` });
 
     try {
       const response = await fetch(`${apiBaseUrl}/api/todos/${id}`, {
@@ -717,15 +723,11 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
         body: JSON.stringify({ check: newCheck })
       });
 
-      console.log('toggleTodo: API response status', response.status);
-
       if (response.ok) {
         const body = await response.json();
-        console.log('toggleTodo: API response body', body);
-        const updated = body.data ?? { ...todo, completed: newCheck };
+        const updated = body.data ? normalizeTodo(body.data) : { ...todo, completed: newCheck };
         todos[todoIndex] = updated;
       } else {
-        console.log('toggleTodo: API failed, updating locally');
         todos[todoIndex] = { ...todo, completed: newCheck };
       }
     } catch (err) {
@@ -790,7 +792,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     todoListEl.innerHTML = todos.map(todo => {
       const todoId = String(todo.id);
       const isDeleted = !!todo.deleted_at;
-      const isChecked = !!todo.completed || isDeleted;
+        const isChecked = !!todo.completed;
       const itemClass = isChecked ? 'completed' : '';
       const checkedAttr = isChecked ? ' checked="checked"' : '';
       const dataActionAttr = '';
@@ -991,12 +993,14 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
 
   // ===== EVENT HANDLERS =====
   function handleTodoClick(e) {
-    const target = e.target;
-    const action = target.dataset.action;
-    const todoItem = target.closest('.todo-item');
-    
+    // find the nearest element that carries a data-action attribute
+    const actionEl = e.target.closest('[data-action]');
+    if (!actionEl) return;
+
+    const action = actionEl.dataset.action;
+    const todoItem = actionEl.closest('.todo-item');
     if (!todoItem) return;
-    
+
     const id = todoItem.dataset.id;
 
     switch (action) {
