@@ -133,27 +133,6 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
           </div>
         </div>
         
-        <!-- Todo Notification -->
-        <div class="setting-item">
-          <div class="setting-info">
-            <div class="setting-title">
-              <span class="setting-icon"><span class="iconify" data-icon="mdi:clipboard-list" data-inline="false"></span></span>
-              <span>Notifikasi Todo</span>
-            </div>
-            <p class="setting-desc">Diingatkan setiap hari di awal hari tentang apa saja yang harus dikerjakan.</p>
-          </div>
-          <div class="setting-controls">
-            <label class="toggle-switch">
-              <input type="checkbox" id="notif-todo" checked>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-        <div class="setting-time-picker" id="todo-time-picker">
-          <label>Jam pengingat:</label>
-          <input type="time" id="todo-notif-time" value="07:00">
-        </div>
-
         <!-- Cuaca Notification -->
         <div class="setting-item">
           <div class="setting-info">
@@ -173,6 +152,27 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
         <div class="setting-time-picker" id="cuaca-time-picker">
           <label>Jam pengingat:</label>
           <input type="time" id="cuaca-notif-time" value="06:00">
+        </div>
+        
+        <!-- Todo Notification -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-title">
+              <span class="setting-icon"><span class="iconify" data-icon="mdi:clipboard-list" data-inline="false"></span></span>
+              <span>Notifikasi Todo</span>
+            </div>
+            <p class="setting-desc">Diingatkan setiap hari di awal hari tentang apa saja yang harus dikerjakan.</p>
+          </div>
+          <div class="setting-controls">
+            <label class="toggle-switch">
+              <input type="checkbox" id="notif-todo" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="setting-time-picker" id="todo-time-picker">
+          <label>Jam pengingat:</label>
+          <input type="time" id="todo-notif-time" value="07:00">
         </div>
 
         <!-- Motivasi Notification -->
@@ -546,14 +546,23 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     updateTimePickerVisibility();
 
     // Location states
+    // Prefer explicit location objects saved locally
     if (settings.sholatLocation) {
       selectedCity = settings.sholatLocation;
+      // we can render immediately when we have a full object
       renderSholatConfigured();
+    } else if (settings.notifications && settings.notifications.sholat && settings.notifications.sholat.code) {
+      // If server provided only a code and no local object, set placeholder without showing code
+      selectedCity = { id: settings.notifications.sholat.code, name: null, _codeOnly: true };
+      // do NOT render yet; we'll fetch the human-readable name
     }
 
     if (settings.cuacaLocation) {
       selectedRegion = settings.cuacaLocation;
       renderCuacaConfigured();
+    } else if (settings.notifications && settings.notifications.cuaca && settings.notifications.cuaca.code) {
+      selectedRegion = { id: settings.notifications.cuaca.code, name: null, _codeOnly: true };
+      // await fetch to get name before rendering
     }
   }
 
@@ -833,6 +842,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     // Minimal display: show only stored location and a short note with source link.
     sholatNotConfigured.style.display = 'none';
     sholatConfigured.style.display = 'block';
+    // Show name and, if available, the server 'code' for this prayer setting
     sholatLocationName.textContent = selectedCity.name;
 
     // Hide detailed elements
@@ -905,7 +915,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
           cityResults.innerHTML = '<li class="no-results">Tidak ditemukan hasil</li>';
         } else {
           cityResults.innerHTML = results.map(city => `
-            <li class="search-result-item" data-id="${city.id}" data-name="${escapeHtml(city.name)}">
+            <li class="search-result-item" data-id="${city.code}" data-name="${escapeHtml(city.name)}">
               <div class="result-name">${escapeHtml(city.name)}</div>
               <div class="result-detail">${escapeHtml(city.province || '')}</div>
             </li>
@@ -943,7 +953,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
           regionResults.innerHTML = '<li class="no-results">Tidak ditemukan hasil</li>';
         } else {
           regionResults.innerHTML = results.map(region => `
-            <li class="search-result-item" data-id="${region.id}" data-name="${escapeHtml(region.name)}">
+            <li class="search-result-item" data-id="${region.code}" data-name="${escapeHtml(region.name)}">
               <div class="result-name">${escapeHtml(region.name)}</div>
               <div class="result-detail">${escapeHtml(region.full_path || region.district || '')}</div>
             </li>
@@ -963,6 +973,70 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   // Debounced search
   const debouncedSearchCities = debounce(searchCities, 300);
   const debouncedSearchRegions = debounce(searchRegions, 300);
+
+  // Fetch human-readable city detail by code
+  async function getCityDetail(code) {
+    if (!code) return null;
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/city/${encodeURIComponent(code)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {})
+        }
+      });
+      if (!res.ok) return null;
+      const body = await res.json();
+      return body?.data?.name || null;
+    } catch (err) {
+      console.warn('getCityDetail failed', err);
+      return null;
+    }
+  }
+
+  // Fetch human-readable region detail by code
+  async function getRegionDetail(code) {
+    if (!code) return null;
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/region/${encodeURIComponent(code)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {})
+        }
+      });
+      if (!res.ok) return null;
+      const body = await res.json();
+      return body?.data?.name || null;
+    } catch (err) {
+      console.warn('getRegionDetail failed', err);
+      return null;
+    }
+  }
+
+  // When no local settings exist, fetch names for code-only locations and render
+  async function populateLocationNamesFromCodes() {
+    try {
+      // Sholat
+      if ((!settings.sholatLocation || !settings.sholatLocation.name) && settings.notifications?.sholat?.code) {
+        const code = settings.notifications.sholat.code;
+        // set placeholder id if not set
+        if (!selectedCity) selectedCity = { id: code, name: null, _codeOnly: true };
+        const name = await getCityDetail(code);
+        selectedCity.name = name || code;
+        renderSholatConfigured();
+      }
+
+      // Cuaca
+      if ((!settings.cuacaLocation || !settings.cuacaLocation.name) && settings.notifications?.cuaca?.code) {
+        const code = settings.notifications.cuaca.code;
+        if (!selectedRegion) selectedRegion = { id: code, name: null, _codeOnly: true };
+        const name = await getRegionDetail(code);
+        selectedRegion.name = name || code;
+        renderCuacaConfigured();
+      }
+    } catch (err) {
+      console.warn('populateLocationNamesFromCodes failed', err);
+    }
+  }
 
   // ===== MODAL FUNCTIONS =====
   function openModal(modalId) {
@@ -1091,9 +1165,17 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     const isAuthenticated = await checkAuth();
     if (!isAuthenticated) return;
 
+    // Determine if local settings exist; if not, we'll populate names from server codes
+    const hadLocalSettings = !!localStorage.getItem('app_settings');
+
     // Load local settings fast, then try to fetch server settings to override
     loadSettings();
     await fetchUserSettings();
+
+    // If no local settings previously, populate human-readable names for any code-only locations
+    if (!hadLocalSettings) {
+      await populateLocationNamesFromCodes();
+    }
 
     // Show content
     userNameEl.textContent = userData.name || 'User';
@@ -1171,6 +1253,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     // City result selection
     cityResults.addEventListener('click', (e) => {
       const item = e.target.closest('.search-result-item');
+      console.log({item}, item.dataset)
       if (item) {
         selectedCity = {
           id: item.dataset.id,
@@ -1191,13 +1274,54 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       saveSholatLocation.disabled = true;
     });
 
-    // Save sholat location
-    saveSholatLocation.addEventListener('click', () => {
-      if (selectedCity) {
-        settings.sholatLocation = selectedCity;
+    // Save sholat location -> POST /api/city
+    saveSholatLocation.addEventListener('click', async () => {
+      if (!selectedCity) return;
+      console.log({selectedCity})
+      const originalLabel = saveSholatLocation.textContent;
+      saveSholatLocation.disabled = true;
+      saveSholatLocation.textContent = 'Menyimpan...';
+
+      // optimistic local save
+      settings.sholatLocation = selectedCity;
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/city`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({ code: String(selectedCity.id) })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Server returned ${res.status}: ${text}`);
+        }
+
+        const body = await res.json();
+        const returnedCode = body?.data?.code || selectedCity.id;
+
+        settings.notifications = settings.notifications || {};
+        settings.notifications.sholat = settings.notifications.sholat || {};
+        settings.notifications.sholat.code = returnedCode;
         saveSettings();
+
         renderSholatConfigured();
         closeModal('modal-sholat');
+      } catch (err) {
+        console.error('Failed to save prayer city:', err);
+        // still persist locally
+        settings.notifications = settings.notifications || {};
+        settings.notifications.sholat = settings.notifications.sholat || {};
+        settings.notifications.sholat.code = selectedCity.id;
+        saveSettings();
+        alert('Gagal menyimpan lokasi sholat ke server. Perubahan disimpan secara lokal.');
+        renderSholatConfigured();
+        closeModal('modal-sholat');
+      } finally {
+        saveSholatLocation.disabled = false;
+        saveSholatLocation.textContent = originalLabel;
       }
     });
 
@@ -1229,13 +1353,51 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       saveCuacaLocation.disabled = true;
     });
 
-    // Save cuaca location
-    saveCuacaLocation.addEventListener('click', () => {
-      if (selectedRegion) {
-        settings.cuacaLocation = selectedRegion;
+    // Save cuaca location -> POST /api/region
+    saveCuacaLocation.addEventListener('click', async () => {
+      if (!selectedRegion) return;
+      const originalLabel = saveCuacaLocation.textContent;
+      saveCuacaLocation.disabled = true;
+      saveCuacaLocation.textContent = 'Menyimpan...';
+
+      settings.cuacaLocation = selectedRegion;
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/region`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({ code: String(selectedRegion.id) })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Server returned ${res.status}: ${text}`);
+        }
+
+        const body = await res.json();
+        const returnedCode = body?.data?.code || selectedRegion.id;
+
+        settings.notifications = settings.notifications || {};
+        settings.notifications.cuaca = settings.notifications.cuaca || {};
+        settings.notifications.cuaca.code = returnedCode;
         saveSettings();
+
         renderCuacaConfigured();
         closeModal('modal-cuaca');
+      } catch (err) {
+        console.error('Failed to save weather region:', err);
+        settings.notifications = settings.notifications || {};
+        settings.notifications.cuaca = settings.notifications.cuaca || {};
+        settings.notifications.cuaca.code = selectedRegion.id;
+        saveSettings();
+        alert('Gagal menyimpan lokasi cuaca ke server. Perubahan disimpan secara lokal.');
+        renderCuacaConfigured();
+        closeModal('modal-cuaca');
+      } finally {
+        saveCuacaLocation.disabled = false;
+        saveCuacaLocation.textContent = originalLabel;
       }
     });
   }

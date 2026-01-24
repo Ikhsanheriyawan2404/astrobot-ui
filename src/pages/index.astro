@@ -129,6 +129,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
       const ok = await verifyToken(refToken, { save: true, redirectOnSuccess: true });
       if (!ok) {
         loadingOverlay.classList.add('hidden');
+        window.alert('Gagal login. Silakan coba lagi.');
         window.history.replaceState({}, document.title, '/');
       }
       return;
