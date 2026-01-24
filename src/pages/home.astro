@@ -434,6 +434,96 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     localStorage.setItem('app_settings', JSON.stringify(settings));
   }
 
+  // Fetch settings from backend and merge/apply
+  async function fetchUserSettings() {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/settings`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+
+      if (!res.ok) {
+        console.warn('fetchUserSettings: server returned', res.status);
+        return null;
+      }
+
+      const body = await res.json();
+      const data = body.data || null;
+      if (!data) return null;
+
+      // Map API shape to local `settings` shape
+      settings = settings || {};
+      settings.sholatLocation = settings.sholatLocation || null;
+      settings.cuacaLocation = settings.cuacaLocation || null;
+      settings.notifications = settings.notifications || {};
+
+      settings.notifications.motivasi = {
+        enabled: !!(data.motivation && data.motivation.enabled),
+        time: (data.motivation && data.motivation.time) || settings.notifications.motivasi?.time || '08:00'
+      };
+      settings.notifications.todo = {
+        enabled: !!(data.todo && data.todo.enabled),
+        time: (data.todo && data.todo.time) || settings.notifications.todo?.time || '07:00'
+      };
+      settings.notifications.cuaca = {
+        enabled: !!(data.weather && data.weather.enabled),
+        time: (data.weather && data.weather.time) || settings.notifications.cuaca?.time || '06:00',
+        code: data.weather && data.weather.code
+      };
+      settings.notifications.sholat = {
+        enabled: !!(data.prayer && data.prayer.enabled),
+        code: data.prayer && data.prayer.code
+      };
+      settings.timezone = data.timezone || settings.timezone || 'Asia/Jakarta';
+
+      saveSettings();
+      applySettingsToUI();
+      return data;
+    } catch (err) {
+      console.warn('fetchUserSettings failed', err);
+      return null;
+    }
+  }
+
+  async function updateUserSettings() {
+    // build payload in API shape
+    const payload = {
+      motivation: { enabled: !!settings.notifications.motivasi.enabled, time: settings.notifications.motivasi.time },
+      todo: { enabled: !!settings.notifications.todo.enabled, time: settings.notifications.todo.time },
+      weather: { enabled: !!settings.notifications.cuaca.enabled, time: settings.notifications.cuaca.time, code: settings.notifications.cuaca.code || '' },
+      prayer: { enabled: !!settings.notifications.sholat.enabled, code: settings.notifications.sholat.code || '' },
+      timezone: settings.timezone || 'Asia/Jakarta'
+    };
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server returned ${res.status}: ${text}`);
+      }
+
+      const body = await res.json();
+      // merge returned data if provided
+      if (body && body.data) {
+        await fetchUserSettings();
+      }
+      return body;
+    } catch (err) {
+      console.error('updateUserSettings failed', err);
+      throw err;
+    }
+  }
+
   function applySettingsToUI() {
     // Notification toggles
     notifTodo.checked = settings.notifications.todo.enabled;
@@ -748,8 +838,11 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     prayerTimesEl.style.display = 'none';
 
     nextPrayerInfo.innerHTML = '';
+    // remove previous simple note if present
+    const prevSholat = nextPrayerInfo.querySelector('.sholat-simple-note');
+    if (prevSholat) prevSholat.remove();
     const sholatNote = document.createElement('div');
-    sholatNote.className = 'info-note blue';
+    sholatNote.className = 'info-note blue sholat-simple-note';
     sholatNote.innerHTML = `
       <div>
         <div>Notifikasi akan dikirim pada waktunya di Telegram.</div>
@@ -778,7 +871,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     if (prev) prev.remove();
 
     const cuacaNote = document.createElement('div');
-    cuacaNote.className = 'info-note blue';
+    cuacaNote.className = 'info-note blue cuaca-simple-note';
     cuacaNote.innerHTML = `
       <div>
         <div>Notifikasi akan dikirim pada waktunya di Telegram.</div>
@@ -960,6 +1053,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   }
 
   function handleSaveSettings() {
+    // read UI values into settings
     settings.notifications.todo.enabled = notifTodo.checked;
     settings.notifications.todo.time = todoNotifTime.value;
     settings.notifications.sholat.enabled = notifSholat.checked;
@@ -967,20 +1061,25 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     settings.notifications.cuaca.time = cuacaNotifTime.value;
     settings.notifications.motivasi.enabled = notifMotivasi.checked;
     settings.notifications.motivasi.time = motivasiNotifTime.value;
+
     // UI: show saving state
     saveSettingsBtn.disabled = true;
     saveSettingsBtn.innerHTML = '<span class="iconify spin" data-icon="mdi:loading" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Menyimpan...';
 
-    // Persist settings
+    // Persist locally first
     saveSettings();
 
-    // Show success feedback
-    saveSettingsBtn.innerHTML = '<span class="iconify" data-icon="mdi:check-circle" data-inline="false" style="vertical-align:middle;margin-right:8px"></span> Tersimpan!';
-
-    setTimeout(() => {
-      saveSettingsBtn.innerHTML = '<span class="iconify" data-icon="mdi:content-save-outline" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Simpan Pengaturan';
-      saveSettingsBtn.disabled = false;
-    }, 2000);
+    // Send to backend
+    updateUserSettings().then(() => {
+      saveSettingsBtn.innerHTML = '<span class="iconify" data-icon="mdi:check-circle" data-inline="false" style="vertical-align:middle;margin-right:8px"></span> Tersimpan!';
+    }).catch(() => {
+      saveSettingsBtn.innerHTML = '<span class="iconify" data-icon="mdi:alert-circle" data-inline="false" style="vertical-align:middle;margin-right:8px"></span> Gagal';
+    }).finally(() => {
+      setTimeout(() => {
+        saveSettingsBtn.innerHTML = '<span class="iconify" data-icon="mdi:content-save-outline" data-inline="false" style="vertical-align:middle;margin-right:8px"></span>Simpan Pengaturan';
+        saveSettingsBtn.disabled = false;
+      }, 1500);
+    });
   }
 
   // ===== INITIALIZE =====
@@ -988,8 +1087,9 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     const isAuthenticated = await checkAuth();
     if (!isAuthenticated) return;
 
-    // Load settings
+    // Load local settings fast, then try to fetch server settings to override
     loadSettings();
+    await fetchUserSettings();
 
     // Show content
     userNameEl.textContent = userData.name || 'User';
