@@ -288,16 +288,19 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   let selectedRegion = null;  // For Cuaca
 
   // Settings state (loaded from localStorage)
-  let settings = {
+  const DEFAULT_SETTINGS = {
     sholatLocation: null,
     cuacaLocation: null,
     notifications: {
       todo: { enabled: true, time: '07:00' },
-      sholat: { enabled: true },
-      cuaca: { enabled: true, time: '06:00' },
+      sholat: { enabled: true, code: null },
+      cuaca: { enabled: true, time: '06:00', code: null },
       motivasi: { enabled: true, time: '08:00' }
-    }
+    },
+    timezone: 'Asia/Jakarta'
   };
+
+  let settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
 
   // Dummy data for prayer times
   const dummyPrayerTimes = {
@@ -431,7 +434,16 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
   function loadSettings() {
     const saved = localStorage.getItem('app_settings');
     if (saved) {
-      settings = JSON.parse(saved);
+      try {
+        const parsed = JSON.parse(saved);
+        // shallow merge with defaults to avoid missing properties
+        settings = Object.assign({}, JSON.parse(JSON.stringify(DEFAULT_SETTINGS)), parsed || {});
+        // ensure notifications object is merged too
+        settings.notifications = Object.assign({}, JSON.parse(JSON.stringify(DEFAULT_SETTINGS.notifications)), (parsed && parsed.notifications) || {});
+      } catch (err) {
+        console.warn('loadSettings: failed to parse saved settings, using defaults', err);
+        settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      }
     }
     applySettingsToUI();
   }
@@ -599,12 +611,24 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
 
       userData = (await response.json()).data;
       localStorage.setItem('user_data', JSON.stringify(userData));
+      // store timestamp so cached user_data can be invalidated later
+      localStorage.setItem('user_data_ts', String(Date.now()));
       return true;
     } catch (error) {
       console.error('Auth check failed:', error);
+      // If network/auth fails, allow offline cached user_data but only if it's recent
       if (storedUserData) {
-        userData = JSON.parse(storedUserData);
-        return true;
+        try {
+          const ts = Number(localStorage.getItem('user_data_ts') || 0);
+          const MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+          if (ts && (Date.now() - ts) < MAX_AGE) {
+            userData = JSON.parse(storedUserData);
+            console.warn('Using cached user_data (within TTL)');
+            return true;
+          }
+        } catch (err) {
+          console.warn('Failed to parse cached user_data', err);
+        }
       }
       window.location.href = '/';
       return false;
@@ -842,8 +866,8 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     // Minimal display: show only stored location and a short note with source link.
     sholatNotConfigured.style.display = 'none';
     sholatConfigured.style.display = 'block';
-    // Show name and, if available, the server 'code' for this prayer setting
-    sholatLocationName.textContent = selectedCity.name;
+    // Show name (fallback to id if name not available)
+    sholatLocationName.textContent = selectedCity.name || selectedCity.id || '-';
 
     // Hide detailed elements
     prayerTimesEl.innerHTML = '';
@@ -871,7 +895,7 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     // Minimal display: show only stored location and a short note with source link.
     cuacaNotConfigured.style.display = 'none';
     cuacaConfigured.style.display = 'block';
-    cuacaLocationName.textContent = selectedRegion.name;
+    cuacaLocationName.textContent = selectedRegion.name || selectedRegion.id || '-';
 
     weatherDisplay.innerHTML = '';
     weatherDisplay.style.display = 'none';
@@ -1172,10 +1196,8 @@ const apiBaseUrl = import.meta.env.PUBLIC_API_BASE_URL;
     loadSettings();
     await fetchUserSettings();
 
-    // If no local settings previously, populate human-readable names for any code-only locations
-    if (!hadLocalSettings) {
-      await populateLocationNamesFromCodes();
-    }
+    // Populate human-readable names for any code-only locations (always try)
+    await populateLocationNamesFromCodes();
 
     // Show content
     userNameEl.textContent = userData.name || 'User';

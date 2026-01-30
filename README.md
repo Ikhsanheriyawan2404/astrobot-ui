@@ -60,6 +60,22 @@ Ganti `production_branch` atau `name` di `wrangler.toml` kalau perlu.
 - Icons: `public/pwa-192x192.png`, `public/pwa-512x512.png`
 - Meta tags PWA ada di `src/layouts/Layout.astro`
 
+### Generate PWA icons from your logo
+If you want the PWA icons to use the new `public/logo.svg` (or `public/logo.jpeg`), run the generator script below. It uses `sharp` to render PNG icons at the correct sizes and will overwrite `pwa-192x192.png` and `pwa-512x512.png`.
+
+```bash
+# install deps (if not installed yet)
+npm install
+
+# generate icons (reads public/logo.svg or public/logo.jpeg)
+npm run generate:pwa
+
+# then rebuild the site
+npm run build
+```
+
+The script lives at `scripts/generate-pwa-icons.js` and is safe to re-run whenever you update `public/logo.svg`.
+
 ## 📂 Struktur Ringkas
 ```text
 /public       # favicon, PWA icons, manifest via plugin

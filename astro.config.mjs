@@ -9,7 +9,7 @@ export default defineConfig({
       mode: 'production',
       base: '/',
       scope: '/',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'logo.svg', 'logo.jpeg', 'icon.svg'],
       registerType: 'autoUpdate',
       manifest: {
         name: 'Asisten Bot Telegram',
@@ -36,6 +36,12 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
+          },
+          {
+            src: 'logo.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any'
           },
         ],
       },
